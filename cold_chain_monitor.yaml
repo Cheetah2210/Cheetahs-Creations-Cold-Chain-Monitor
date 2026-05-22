@@ -1,0 +1,28 @@
+esphome:
+  name: cold-chain-monitor
+  platformio_options:
+    board_build.flash_mode: dio
+
+# Configure the DS18B20 sensor
+sensor:
+  - platform: dallas_temp
+    address: 0xXXYOURADDRESSXX # Set your unique sensor address here
+    name: "Freezer Temperature"
+    update_interval: 30s
+    filters:
+      # Use a moving average filter to smooth out sensor noise
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 1
+      # Delta filter: Only report if the temp changes by more than 0.5 degrees
+      - delta: 0.5
+
+# Advanced Alert Logic
+binary_sensor:
+  - platform: template
+    name: "Freezer Door Ajar Alert"
+    device_class: problem
+    lambda: |-
+      // Trigger if temperature rises faster than 1 degree every 5 minutes
+      // This is a placeholder for your custom 'rate-of-change' logic
+      return id(freezer_temp).state > -10.0;
